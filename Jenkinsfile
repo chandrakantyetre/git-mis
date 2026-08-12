@@ -22,21 +22,21 @@ pipeline {
         }
 
         stage('Docker Push') {
-            steps {
-                withCredentials([usernamePassword(
-                    credentialsId: 'dockerhub-creds',
-                    usernameVariable: 'DOCKER_USER',
-                    passwordVariable: 'DOCKER_TOKEN'
-                )]) {
-                    bat '''
-                        echo %DOCKER_TOKEN% | docker login -u "%DOCKER_USER%" --password-stdin
-                        if errorlevel 1 exit /b 1
+    	   steps {
+              withCredentials([usernamePassword(
+                credentialsId: 'dockerhub-pat',
+                usernameVariable: 'DOCKER_USER',
+                passwordVariable: 'DOCKER_TOKEN'
+              )]) {
+                  bat '''
+                     echo %DOCKER_TOKEN% | docker login -u "%DOCKER_USER%" --password-stdin
+                     if errorlevel 1 exit /b 1
 
-                        docker push chandrakantyetre/college-mis:%BUILD_NUMBER%
-                        if errorlevel 1 exit /b 1
-                    '''
-                }
-            }
+                     docker push chandrakantyetre/college-mis:%BUILD_NUMBER%
+                     if errorlevel 1 exit /b 1
+                  '''
+                  }
+             }
         }
     }
 }
