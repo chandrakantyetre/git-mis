@@ -28,12 +28,18 @@ pipeline {
                     usernameVariable: 'DOCKER_USER',
                     passwordVariable: 'DOCKER_TOKEN'
                 )]) {
-                    bat '''
-                        echo %DOCKER_TOKEN% | docker login -u "%DOCKER_USER%" --password-stdin
-                        if errorlevel 1 exit /b 1
+                    powershell '''
+                        $env:DOCKER_TOKEN | docker login -u $env:DOCKER_USER --password-stdin
 
-                        docker push chandrakantyetre/college-mis:%BUILD_NUMBER%
-                        if errorlevel 1 exit /b 1
+                        if ($LASTEXITCODE -ne 0) {
+                            exit 1
+                        }
+
+                        docker push "chandrakantyetre/college-mis:$env:BUILD_NUMBER"
+
+                        if ($LASTEXITCODE -ne 0) {
+                            exit 1
+                        }
                     '''
                 }
             }
