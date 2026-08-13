@@ -3,25 +3,7 @@ pipeline {
 
     stages {
 
-        stage('Checkout') {
-            steps {
-                checkout scm
-            }
-        }
-
-        stage('Build & Test') {
-            steps {
-                bat 'mvn clean package'
-            }
-        }
-
-        stage('Docker Build') {
-            steps {
-                bat "docker build -t chandrakantyetre/college-mis:%BUILD_NUMBER% ."
-            }
-        }
-
-        stage('Docker Credential Test') {
+        stage('Docker Login Test') {
             steps {
                 withCredentials([usernamePassword(
                     credentialsId: 'dockerhub-college-mis',
@@ -29,12 +11,25 @@ pipeline {
                     passwordVariable: 'DOCKER_TOKEN'
                 )]) {
                     powershell '''
-                        $bytes = [System.Text.Encoding]::UTF8.GetBytes($env:DOCKER_TOKEN)
-                        $hash = [System.Security.Cryptography.SHA256]::Create().ComputeHash($bytes)
-                        $hashText = ([BitConverter]::ToString($hash)).Replace("-", "").ToLower()
+                        $configDir = "$env:WORKSPACE\\.docker-jenkins"
 
-                        Write-Host "Docker username: $env:DOCKER_USER"
-                        Write-Host "PAT HASH: $hashText"
+                        if (Test-Path $configDir) {
+                            Remove-Item $configDir -Recurse -Force
+                        }
+
+                        New-Item -ItemType Directory -Path $configDir | Out-Null
+
+                        $env:DOCKER_CONFIG = $configDir
+
+                        $env:DOCKER_TOKEN | docker login `
+                            -u $env:DOCKER_USER `
+                            --password-stdin
+
+                        if ($LASTEXITCODE -ne 0) {
+                            exit 1
+                        }
+
+                        Write-Host "Docker login successful from Jenkins service environment."
                     '''
                 }
             }
