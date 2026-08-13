@@ -21,7 +21,7 @@ pipeline {
             }
         }
 
-        stage('Docker Push') {
+        stage('Docker Credential Test') {
             steps {
                 withCredentials([usernamePassword(
                     credentialsId: 'dockerhub-college-mis',
@@ -29,17 +29,12 @@ pipeline {
                     passwordVariable: 'DOCKER_TOKEN'
                 )]) {
                     powershell '''
-                        $env:DOCKER_TOKEN | docker login -u $env:DOCKER_USER --password-stdin
+                        $bytes = [System.Text.Encoding]::UTF8.GetBytes($env:DOCKER_TOKEN)
+                        $hash = [System.Security.Cryptography.SHA256]::Create().ComputeHash($bytes)
+                        $hashText = ([BitConverter]::ToString($hash)).Replace("-", "").ToLower()
 
-                        if ($LASTEXITCODE -ne 0) {
-                            exit 1
-                        }
-
-                        docker push "chandrakantyetre/college-mis:$env:BUILD_NUMBER"
-
-                        if ($LASTEXITCODE -ne 0) {
-                            exit 1
-                        }
+                        Write-Host "Docker username: $env:DOCKER_USER"
+                        Write-Host "PAT HASH: $hashText"
                     '''
                 }
             }
