@@ -2,20 +2,18 @@ pipeline {
     agent any
 
     stages {
-        stage('Docker Environment Test') {
+
+        stage('Docker Endpoint Test') {
             steps {
                 bat '''
                     echo ===== WINDOWS USER =====
                     whoami
 
-                    echo ===== DOCKER CONTEXTS =====
-                    docker context ls
+                    echo ===== DOCKER VERSION USING DESKTOP LINUX PIPE =====
+                    docker -H npipe:////./pipe/dockerDesktopLinuxEngine version
 
-                    echo ===== CURRENT CONTEXT =====
-                    docker context show
-
-                    echo ===== DOCKER VERSION =====
-                    docker version
+                    echo ===== DOCKER INFO USING DESKTOP LINUX PIPE =====
+                    docker -H npipe:////./pipe/dockerDesktopLinuxEngine info
                 '''
             }
         }
