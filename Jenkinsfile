@@ -2,36 +2,21 @@ pipeline {
     agent any
 
     stages {
-
-        stage('Docker Login Test') {
+        stage('Docker Environment Test') {
             steps {
-                withCredentials([usernamePassword(
-                    credentialsId: 'dockerhub-college-mis',
-                    usernameVariable: 'DOCKER_USER',
-                    passwordVariable: 'DOCKER_TOKEN'
-                )]) {
-                    powershell '''
-                        $configDir = "$env:WORKSPACE\\.docker-jenkins"
+                bat '''
+                    echo ===== WINDOWS USER =====
+                    whoami
 
-                        if (Test-Path $configDir) {
-                            Remove-Item $configDir -Recurse -Force
-                        }
+                    echo ===== DOCKER CONTEXTS =====
+                    docker context ls
 
-                        New-Item -ItemType Directory -Path $configDir | Out-Null
+                    echo ===== CURRENT CONTEXT =====
+                    docker context show
 
-                        $env:DOCKER_CONFIG = $configDir
-
-                        $env:DOCKER_TOKEN | docker login `
-                            -u $env:DOCKER_USER `
-                            --password-stdin
-
-                        if ($LASTEXITCODE -ne 0) {
-                            exit 1
-                        }
-
-                        Write-Host "Docker login successful from Jenkins service environment."
-                    '''
-                }
+                    echo ===== DOCKER VERSION =====
+                    docker version
+                '''
             }
         }
     }
