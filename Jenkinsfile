@@ -5,16 +5,18 @@ pipeline {
 
         stage('Docker Endpoint Test') {
             steps {
-                bat '''
-                    echo ===== WINDOWS USER =====
-                    whoami
+                withEnv(['DOCKER_HOST=npipe:////./pipe/dockerDesktopLinuxEngine']) {
+                    bat '''
+                        echo ===== WINDOWS USER =====
+                        whoami
 
-                    echo ===== DOCKER VERSION USING DESKTOP LINUX PIPE =====
-                    docker -H npipe:////./pipe/dockerDesktopLinuxEngine version
+                        echo ===== DOCKER HOST =====
+                        echo %DOCKER_HOST%
 
-                    echo ===== DOCKER INFO USING DESKTOP LINUX PIPE =====
-                    docker -H npipe:////./pipe/dockerDesktopLinuxEngine info
-                '''
+                        echo ===== DOCKER VERSION =====
+                        docker version
+                    '''
+                }
             }
         }
     }
