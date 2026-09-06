@@ -50,7 +50,7 @@ pipeline {
             echo "Waiting for application to start..."
             sleep 10
 
-            if curl -f http://localhost:8081/actuator/health; then
+            if curl -f http://localhost:8081/actuator/health-broken; then
                 echo "Health check PASSED"
                 echo "Deployment successful: $NEW_IMAGE"
             else
