@@ -29,5 +29,21 @@ pipeline {
                 }
             }
         }
+
+        stage('Deploy') {
+            steps {
+                sh '''
+                    docker pull chandrakantyetre/college-mis:${BUILD_NUMBER}
+
+                    docker stop college-mis || true
+                    docker rm college-mis || true
+
+                    docker run -d \
+                        --name college-mis \
+                        -p 8081:8080 \
+                        chandrakantyetre/college-mis:${BUILD_NUMBER}
+                '''
+            }
+        }
     }
 }
