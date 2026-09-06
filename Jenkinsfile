@@ -32,19 +32,44 @@ pipeline {
         }
 
         stage('Deploy') {
-            steps {
-                sh '''
-                    docker pull chandrakantyetre/college-mis:${BUILD_NUMBER}
+    steps {
+        sh '''
+            NEW_IMAGE="chandrakantyetre/college-mis:${BUILD_NUMBER}"
+            PREVIOUS_IMAGE="chandrakantyetre/college-mis:$((BUILD_NUMBER - 1))"
 
-                    docker stop college-mis || true
-                    docker rm college-mis || true
+            docker pull "$NEW_IMAGE"
 
-                    docker run -d \
-                        --name college-mis \
-                        -p 8081:8080 \
-                        chandrakantyetre/college-mis:${BUILD_NUMBER}
-                '''
-            }
-        }
+            docker stop college-mis || true
+            docker rm college-mis || true
+
+            docker run -d \
+                --name college-mis \
+                -p 8081:8080 \
+                "$NEW_IMAGE"
+
+            echo "Waiting for application to start..."
+            sleep 10
+
+            if curl -f http://localhost:8081/actuator/health; then
+                echo "Health check PASSED"
+                echo "Deployment successful: $NEW_IMAGE"
+            else
+                echo "Health check FAILED"
+                echo "Rolling back to: $PREVIOUS_IMAGE"
+
+                docker stop college-mis || true
+                docker rm college-mis || true
+
+                docker run -d \
+                    --name college-mis \
+                    -p 8081:8080 \
+                    "$PREVIOUS_IMAGE"
+
+                echo "Rollback completed"
+                exit 1
+            fi
+        '''
+    }
+}
     }
 }
