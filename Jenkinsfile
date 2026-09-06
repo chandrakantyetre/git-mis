@@ -42,7 +42,7 @@ pipeline {
             echo "New image: $NEW_IMAGE"
             echo "Last known good image: $LAST_GOOD_IMAGE"
 
-            docker pull "$NEW_IMAGE"
+            docker pull "$LAST_GOOD_IMAGE"
 
             docker stop college-mis || true
             docker rm college-mis || true
