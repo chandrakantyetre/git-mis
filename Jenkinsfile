@@ -31,11 +31,16 @@ pipeline {
             }
         }
 
-        stage('Deploy') {
+       stage('Deploy') {
     steps {
         sh '''
             NEW_IMAGE="chandrakantyetre/college-mis:${BUILD_NUMBER}"
-            PREVIOUS_IMAGE="chandrakantyetre/college-mis:$((BUILD_NUMBER - 1))"
+            LAST_GOOD_FILE="/var/lib/jenkins/last_successful_image"
+
+            LAST_GOOD_IMAGE=$(cat "$LAST_GOOD_FILE")
+
+            echo "New image: $NEW_IMAGE"
+            echo "Last known good image: $LAST_GOOD_IMAGE"
 
             docker pull "$NEW_IMAGE"
 
@@ -50,12 +55,19 @@ pipeline {
             echo "Waiting for application to start..."
             sleep 10
 
-            if curl -f http://localhost:8081/actuator/health-broken; then
+            if curl -f http://localhost:8081/actuator/health; then
+
                 echo "Health check PASSED"
                 echo "Deployment successful: $NEW_IMAGE"
+
+                echo "$NEW_IMAGE" > "$LAST_GOOD_FILE"
+
+                echo "Last known good image updated to: $NEW_IMAGE"
+
             else
+
                 echo "Health check FAILED"
-                echo "Rolling back to: $PREVIOUS_IMAGE"
+                echo "Rolling back to: $LAST_GOOD_IMAGE"
 
                 docker stop college-mis || true
                 docker rm college-mis || true
@@ -63,7 +75,7 @@ pipeline {
                 docker run -d \
                     --name college-mis \
                     -p 8081:8080 \
-                    "$PREVIOUS_IMAGE"
+                    "$LAST_GOOD_IMAGE"
 
                 echo "Rollback completed"
                 exit 1
