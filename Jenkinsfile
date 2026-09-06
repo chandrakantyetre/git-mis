@@ -1,4 +1,4 @@
-// CI/CD pipeline
+// CI/CD pipeline for auto deloyed with webhook
 pipeline {
     agent any
 
