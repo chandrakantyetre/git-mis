@@ -48,9 +48,10 @@ pipeline {
             docker rm college-mis || true
 
             docker run -d \
-                --name college-mis \
-                -p 8081:8080 \
-                "$NEW_IMAGE"
+    --name college-mis \
+    --restart unless-stopped \
+    -p 8081:8080 \
+    "$NEW_IMAGE"
 
             echo "Waiting for application to start..."
             sleep 10
