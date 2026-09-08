@@ -74,9 +74,10 @@ pipeline {
                 docker rm college-mis || true
 
                 docker run -d \
-                    --name college-mis \
-                    -p 8081:8080 \
-                    "$LAST_GOOD_IMAGE"
+    --name college-mis \
+    --restart unless-stopped \
+    -p 8081:8080 \
+    "$LAST_GOOD_IMAGE"
 
                 echo "Rollback completed"
                 exit 1
